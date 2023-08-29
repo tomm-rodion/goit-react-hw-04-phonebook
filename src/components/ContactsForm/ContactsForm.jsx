@@ -1,5 +1,4 @@
 import { Formik } from 'formik';
-import { nanoid } from 'nanoid';
 import * as yup from 'yup';
 import propTypes from 'prop-types';
 import {
@@ -9,50 +8,52 @@ import {
   ButtonAddContact,
 } from './ContactsForm.styled';
 
-export const ContactsForm = ({ onSubmit, contacts }) => {
-  const handleSubmit = ({ name, number }, { resetForm }) => {
-    const nameInContacts = contacts.find(
-      contact => contact.name.toLowerCase() === name.toLowerCase()
-    );
-    //перевірка існуючого кантакта в телефоній книжці.
-    if (nameInContacts) {
-      alert(`${name} is already in contacts.`);
-      return;
-    }
-    // створення нового контакта
-    const newContact = { id: nanoid(), name, number };
-    onSubmit(newContact);
+const phoneRegExp =
+  /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;
+
+const schema = yup.object().shape({
+  name: yup.string().min(2, 'Too Short!').max(15, 'Too Long!').required(),
+  number: yup
+    .string()
+    .min(2, <em>Too Short!</em>)
+    .max(15, <em>Too Long!</em>)
+    .matches(phoneRegExp, <em>Phone number is not valid</em>)
+    .required(),
+});
+
+const initialValues = { name: '', number: '' };
+
+export const ContactsForm = ({ onSubmit }) => {
+  const handleSubmit = (value, { resetForm }) => {
+    onSubmit(value);
     resetForm();
   };
 
-  const schema = yup.object().shape({
-    name: yup.string().required(),
-    number: yup.number().positive().required(),
-  });
-
-  const initialValues = { name: '', number: '' };
   return (
     <Formik
       initialValues={initialValues}
-      onSubmit={handleSubmit}
       validationSchema={schema}
+      onSubmit={handleSubmit}
     >
-      <FormAddContact>
-        <Label htmlFor="name">
-          Name
-          <InputField type="text" name="name" placeholder="First Name" />
-        </Label>
-        <Label htmlFor="number">
-          Number
-          <InputField type="text" name="number" placeholder="Number tel:" />
-        </Label>
-        <ButtonAddContact type="submit">Add contact</ButtonAddContact>
-      </FormAddContact>
+      {({ errors, touched }) => (
+        <FormAddContact>
+          <Label htmlFor="name">
+            Name
+            {touched.name && errors.name && <div>{errors.name}</div>}
+            <InputField type="text" name="name" placeholder="First Name" />
+          </Label>
+          <Label htmlFor="number">
+            Number
+            {touched.number && errors.number && <div>{errors.number}</div>}
+            <InputField type="text" name="number" placeholder="Number tel:" />
+          </Label>
+          <ButtonAddContact type="submit">Add contact</ButtonAddContact>
+        </FormAddContact>
+      )}
     </Formik>
   );
 };
 
 ContactsForm.propTypes = {
   onSubmit: propTypes.func.isRequired,
-  contacts: propTypes.arrayOf(propTypes.object).isRequired,
 };

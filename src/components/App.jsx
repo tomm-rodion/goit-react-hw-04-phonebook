@@ -1,3 +1,5 @@
+import { nanoid } from 'nanoid';
+
 import { ContactList } from './ContactList/ContactList';
 import { ContactsFilter } from './ContactsFilter/CotactsFilter';
 import { ContactsForm } from './ContactsForm/ContactsForm';
@@ -31,7 +33,17 @@ export const App = () => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
-  const onformSubmit = newContact => {
+  const onformSubmit = ({ name, number }) => {
+    const nameInContacts = contacts.find(
+      contact => contact.name.toLowerCase() === name.toLowerCase()
+    );
+    //перевірка існуючого кантакта в телефоній книжці.
+    if (nameInContacts) {
+      alert(`${name} is already in contacts.`);
+      return;
+    }
+    // створення нового контакта
+    const newContact = { id: nanoid(), name, number };
     setContacts(prevContacts => [newContact, ...prevContacts]);
   };
 
@@ -55,7 +67,7 @@ export const App = () => {
     <Wrapper>
       <Container>
         <TitlePhoneBook>Phonebook</TitlePhoneBook>
-        <ContactsForm onSubmit={onformSubmit} contacts={contacts} />
+        <ContactsForm onSubmit={onformSubmit} />
       </Container>
       <Container>
         <TitleContacts>Contacts</TitleContacts>
